@@ -3,22 +3,26 @@ import progressbar
 import math
 
 # Constans
-THRESHOLD = 10**10
-ITERATIONS = 500
+THRESHOLD = 2
+ITERATIONS = 255
 
-SIZEX_FINAL = 100
-SIZEY_FINAL = 100
+SIZEX_FINAL = 500
+SIZEY_FINAL = 350
 
 SIZEX = round(SIZEX_FINAL * 1.2)
 SIZEY = round(SIZEY_FINAL * 1.2)
 
-CENTERX = -0.77568377
-CENTERY = 0.13646737
+M232 = (-0.77568377, 0.13646737)
 
-ZOOM = 50
+CENTERX = M232[0]
+CENTERY = M232[1]
+
+ZOOM = 100
 
 OFFSETX = CENTERX * ZOOM
 OFFSETY = CENTERY * ZOOM
+
+FRAMECOUNT = 1
 
 
 # Check for divergence
@@ -27,53 +31,69 @@ def diverge(c, z=complex(0, 0), count=0):
     if abs(z) > THRESHOLD:
         return (True, count)
     # If max iters is reached, does not diverge
-    elif count > ITERATIONS:
+    elif count > ITERATIONS or abs(c) <= 0.6:
         return (False, count)
     # Recurse
     else:
         return diverge(c, z=(z**2 + c), count=count + 1)
 
 
-# Image init
-img = Image.new("HSV", (SIZEX, SIZEY), (0, 0, 0))
-pixels = img.load()
+imagec = 1
 
 # Progress bar init
 count = 0
-total = img.size[0] * img.size[1]
+total = SIZEX * SIZEY * FRAMECOUNT
 
 bar = progressbar.ProgressBar(maxval=total)
 
-# Iterate over pixels, real values on X and imaginary on Y
-for R in range(img.size[0]):
-    for I in range(img.size[1]):
-        # Update progress bar
-        bar.update(count)
+frames = []
 
-        # Calculating actual coordinates
-        zoom_offset_x = OFFSETX / ZOOM
-        zoom_offset_y = OFFSETY / ZOOM
+while imagec <= FRAMECOUNT:
+    try:
+        ZOOM += 0
+        OFFSETX = CENTERX * ZOOM
+        OFFSETY = CENTERY * ZOOM
 
-        xval = (R - SIZEX / 2) / ZOOM
-        yval = (I - SIZEY / 2) / ZOOM
+        # Image init
+        img = Image.new("HSV", (SIZEX, SIZEY), (0, 0, 0))
+        pixels = img.load()
 
-        c = complex(xval + zoom_offset_x, yval + zoom_offset_y)
+        # Iterate over pixels, real values on X and imaginary on Y
+        for R in range(img.size[0]):
+            for I in range(img.size[1]):
+                # Update progress bar
+                bar.update(count)
 
-        # Get divergence
-        out = diverge(c)
-        if out[0]:
-            # Map degree of divergence to HSV value
-            aux = math.sqrt(out[1] / ITERATIONS)
-            val = round(aux * 255)
+                # Calculating actual coordinates
+                zoom_offset_x = OFFSETX / ZOOM
+                zoom_offset_y = OFFSETY / ZOOM
 
-            # Edit pixel
-            pixels[R, I] = (180, 100, val)
+                xval = (R - SIZEX / 2) / ZOOM
+                yval = (I - SIZEY / 2) / ZOOM
 
-        count += 1
+                c = complex(xval + zoom_offset_x, yval + zoom_offset_y)
 
-# pixels[round(img.size[0]/2), round(img.size[1]/2)] = (0,255,255)
+                # Get divergence
+                out = diverge(c)
+                if out[0]:
+                    # Map degree of divergence to HSV value
+                    aux = math.sqrt(out[1] / ITERATIONS)
+                    val = round(aux * 255)
 
-# Save image
-img = img.resize((SIZEX_FINAL, SIZEY_FINAL), Image.ANTIALIAS)
-img = img.convert("RGB")
-img.save("test.png")
+                    # Edit pixel
+                    pixels[R, I] = (180, 100, val)
+
+                count += 1
+
+        # pixels[round(img.size[0]/2), round(img.size[1]/2)] = (0,255,255)
+
+        # Save image
+        img = img.resize((SIZEX_FINAL, SIZEY_FINAL), Image.ANTIALIAS)
+        img = img.convert("RGB")
+        frames.append(img)
+        imagec += 1
+    except:
+        print("broke")
+        break
+
+frames[0].save("anim.gif", format="GIF", append_images=frames[1:], optimize=False, save_all=True, duration=30, loop=0)
