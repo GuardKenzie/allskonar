@@ -117,8 +117,8 @@ def main():
             artist = song["artist"]
             title = song["title"]
 
-            win.addstr(text_start, 0, f"{artist} - {title}")
-            win.addstr(text_start + 1, 0, f"{album}")
+            win.addstr(text_start, 0, f"{title}")
+            win.addstr(text_start + 1, 0, f"{artist} - {album}")
 
             # Get album art
             song_file = song["file"]
@@ -153,6 +153,8 @@ def main():
 
 try:
     main()
+except KeyboardInterrupt:
+    pass
 finally:
     curses.endwin()
     client.close()
