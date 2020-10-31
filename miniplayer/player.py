@@ -35,21 +35,32 @@ window_width = lines[1]
 window_height = lines[0]
 
 text_start = int(window_height - 5)
+album_space = text_start - 1
 
 center = ((lines[0] - window_height) // 2, (lines[1] - window_width) // 2)
 
-# Calculate image
-IMAGERATIO = (11, 16)
+IMAGERATIO = (11, 24)
 
-if window_width < text_start * TERMINAL_RATIO:
-    IMAGEWIDTHPX = window_width * IMAGERATIO[0]
+if window_width * IMAGERATIO[0] > album_space * IMAGERATIO[1]:
+    IMAGEWIDTHPX = album_space * IMAGERATIO[1]
 else:
-    IMAGEWIDTHPX = text_start * IMAGERATIO[1]
+    IMAGEWIDTHPX = window_width * IMAGERATIO[0]
 
-IMAGEWIDTH = int(IMAGEWIDTHPX/IMAGERATIO[0])
-IMAGEHEIGHT = int(IMAGEWIDTHPX/IMAGERATIO[1])
+IMAGEWIDTH = int(IMAGEWIDTHPX // IMAGERATIO[0])
+IMAGEHEIGHT = int(IMAGEWIDTHPX // IMAGERATIO[1])
 
-image_y_pos = (lines[0] - IMAGEHEIGHT) // 2
+# # Calculate image
+# IMAGERATIO = (11, 16)
+
+# if window_width < text_start * TERMINAL_RATIO:
+#     IMAGEWIDTHPX = window_width * IMAGERATIO[0]
+# else:
+#     IMAGEWIDTHPX = text_start * IMAGERATIO[1]
+
+# IMAGEWIDTH = int(IMAGEWIDTHPX/IMAGERATIO[0])
+# IMAGEHEIGHT = int(IMAGEWIDTHPX/IMAGERATIO[1])
+
+image_y_pos = (album_space - IMAGEHEIGHT) // 2
 
 def main():
     global lines
@@ -61,6 +72,7 @@ def main():
     global IMAGEWIDTHPX
     global IMAGEWIDTH
     global IMAGEHEIGHT
+    global album_space
 
     # Init window
     win = curses.newwin(window_height, window_width, center[0], center[1])
@@ -79,16 +91,17 @@ def main():
             center = ((lines[0] - window_height) // 2, (lines[1] - window_width) // 2)
 
             text_start = int(window_height - 5)
+            album_space = text_start - 1
 
-            if window_width < text_start * TERMINAL_RATIO:
-                IMAGEWIDTHPX = window_width * IMAGERATIO[0]
+            if window_width * IMAGERATIO[0] > album_space * IMAGERATIO[1]:
+                IMAGEWIDTHPX = album_space * IMAGERATIO[1]
             else:
-                IMAGEWIDTHPX = text_start * IMAGERATIO[1]
+                IMAGEWIDTHPX = window_width * IMAGERATIO[0]
 
-            IMAGEWIDTH = int(IMAGEWIDTHPX/IMAGERATIO[0])
-            IMAGEHEIGHT = int(IMAGEWIDTHPX/IMAGERATIO[1])
+            IMAGEWIDTH = int(IMAGEWIDTHPX // IMAGERATIO[0])
+            IMAGEHEIGHT = int(IMAGEWIDTHPX // IMAGERATIO[1])
 
-            image_y_pos = (lines[0] - IMAGEHEIGHT) // 2
+            image_y_pos = (album_space - IMAGEHEIGHT) // 2
 
             win.resize(window_height, window_width)
             win.move(center[0], center[1])
