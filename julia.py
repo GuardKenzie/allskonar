@@ -10,8 +10,8 @@ import datetime
 THRESHOLD = 10**20
 ITERATIONS = 255
 
-SIZEX_FINAL = 1280
-SIZEY_FINAL = 720
+SIZEX_FINAL = 500
+SIZEY_FINAL = 300
 
 SIZEX = round(SIZEX_FINAL * 1.2)
 SIZEY = round(SIZEY_FINAL * 1.2)
@@ -23,7 +23,7 @@ CENTERY = 0
 
 CONSTANT = complex(0.7885, 0)
 
-ZOOM = 300
+ZOOM = 100
 ZOOMFACTOR = 0
 
 OFFSETX = CENTERX * ZOOM
@@ -39,9 +39,9 @@ VALMAP = []
 
 for a in range(0, ITERATIONS):
     HUEMAP.append((160 + round(360 * (((ITERATIONS - a) / ITERATIONS)))) % 361)
-    VALMAP.append(round(255 * math.sqrt(a / ITERATIONS)))
+    VALMAP.append(30 + round(225 * math.sqrt(a / ITERATIONS)))
 
-MAP = HUEMAP
+MAP = VALMAP
 
 
 def animation(frame):
@@ -131,9 +131,8 @@ if __name__ == "__main__":
         imagec += 1
 
         # Join threads when they are 8
-        if not (imagec) % 16:
-            for thread in threads:
-                threads.pop().join()
+        if len(threads) > 16:
+            threads.pop().join()
 
     for thread in threads:
         thread.join()
