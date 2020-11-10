@@ -3,7 +3,7 @@ import curses
 import os
 from mpd import MPDClient
 import ffmpeg
-from pixcat import Image
+import pixcat
 import time
 
 # Terminal ratio
@@ -35,7 +35,7 @@ window_width = lines[1]
 window_height = lines[0]
 
 text_start = int(window_height - 5)
-album_space = text_start - 1
+album_space = text_start - 2
 
 center = ((lines[0] - window_height) // 2, (lines[1] - window_width) // 2)
 
@@ -49,18 +49,7 @@ else:
 IMAGEWIDTH = int(IMAGEWIDTHPX // IMAGERATIO[0])
 IMAGEHEIGHT = int(IMAGEWIDTHPX // IMAGERATIO[1])
 
-# # Calculate image
-# IMAGERATIO = (11, 16)
-
-# if window_width < text_start * TERMINAL_RATIO:
-#     IMAGEWIDTHPX = window_width * IMAGERATIO[0]
-# else:
-#     IMAGEWIDTHPX = text_start * IMAGERATIO[1]
-
-# IMAGEWIDTH = int(IMAGEWIDTHPX/IMAGERATIO[0])
-# IMAGEHEIGHT = int(IMAGEWIDTHPX/IMAGERATIO[1])
-
-image_y_pos = (album_space - IMAGEHEIGHT) // 2
+image_y_pos = (album_space - IMAGEHEIGHT) // 2 + 1
 
 def main():
     global lines
@@ -91,7 +80,7 @@ def main():
             center = ((lines[0] - window_height) // 2, (lines[1] - window_width) // 2)
 
             text_start = int(window_height - 5)
-            album_space = text_start - 1
+            album_space = text_start - 2
 
             if window_width * IMAGERATIO[0] > album_space * IMAGERATIO[1]:
                 IMAGEWIDTHPX = album_space * IMAGERATIO[1]
@@ -101,7 +90,7 @@ def main():
             IMAGEWIDTH = int(IMAGEWIDTHPX // IMAGERATIO[0])
             IMAGEHEIGHT = int(IMAGEWIDTHPX // IMAGERATIO[1])
 
-            image_y_pos = (album_space - IMAGEHEIGHT) // 2
+            image_y_pos = (album_space - IMAGEHEIGHT) // 2 + 1
 
             win.resize(window_height, window_width)
             win.move(center[0], center[1])
@@ -116,6 +105,9 @@ def main():
             win.refresh()
             time.sleep(1)
             continue
+
+        win.redrawln(0, 1)
+        win.addstr(0, 0, " ")
 
         song = client.currentsong()
 
@@ -143,6 +135,7 @@ def main():
             )
             process.run(quiet=True, overwrite_output=True)
 
+
         # Progress bar
         song_duration = (int(duration / 60), round(duration % 60))
         song_elapsed = (int(elapsed / 60), round(elapsed % 60))
@@ -153,15 +146,21 @@ def main():
         time_string = f"{song_elapsed[0]}:{song_elapsed[1]:02d}/{song_duration[0]}:{song_duration[1]:02d}"
         win.addstr(text_start + 3, 0, f"{time_string:>{window_width}}", curses.color_pair(2))
 
+
         win.refresh()
 
         # Draw album art
-        Image("/tmp/cover-miniplayer.jpg").thumbnail(IMAGEWIDTHPX).show(x=(lines[1] - IMAGEWIDTH)//2,y=image_y_pos)
+        try:
+            pixcat.Image("/tmp/cover-miniplayer.jpg").thumbnail(IMAGEWIDTHPX).show(x=(lines[1] - IMAGEWIDTH)//2, y=image_y_pos)
+            pass
+        except pixcat.terminal.KittyAnswerTimeout:
+            pass
+
+        time.sleep(1)
 
         # Record current song
         last_song = song
 
-        time.sleep(1)
 
 
 try:
