@@ -80,7 +80,8 @@ class Player:
         width = self.window_width
 
         if len(song) > width:
-            song = song[:-4] + "..."
+            song = song[:width - len(song)]
+            song = song[:-4].strip() + "..."
 
         if len(album) == 0:
             sep = 0
@@ -90,9 +91,11 @@ class Player:
         if len(artist) + len(album) + sep > width:
             state = 1
             if len(artist) > width:
-                artist = artist[:-4] + "..."
+                artist = artist[:width - len(artist)]
+                artist = artist[:-4].strip() + "..."
             if len(album) > width:
-                album = album[:-4] + "..."
+                album = album[:width - len(album)]
+                album = album[:-4].strip() + "..."
 
         if len(album) == 0:
             state = 2
