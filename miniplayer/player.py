@@ -37,10 +37,13 @@ class Player:
     def __init__(self):
         # Curses initialisation
         self.stdscr = curses.initscr()
+        self.stdscr.nodelay(True)
 
         # Curses config
         curses.noecho()
         curses.curs_set(0)
+
+        curses.cbreak()
 
         curses.start_color()
         curses.use_default_colors()
@@ -210,6 +213,51 @@ class Player:
             return 2
 
 
+    def handleKeypress(self):
+        """
+        A function to handle keypresses
+
+        Keys:
+            '>' -- Next track
+            '<' -- Last track
+            '+' -- Volume up +5
+            '-' -- Volume down -5
+            'p' -- Play/pause
+            'q' -- Quit
+        """
+
+        if self.checkSongUpdate() == 1:
+            # Flush input if not playing
+            curses.flushinp()
+            return
+
+        # Get key
+        key = self.stdscr.getch()
+
+        while key > 0:
+            # Resolve every key in buffer
+            keyChar = chr(key).lower()
+
+            if keyChar == ">":
+                self.client.next()
+
+            elif keyChar == "<":
+                self.client.previous()
+
+            elif keyChar == "p":
+                self.client.pause()
+
+            elif keyChar == "+":
+                self.client.volume("5")
+
+            elif keyChar == "-":
+                self.client.volume("-5")
+
+            elif keyChar == "q":
+                raise KeyboardInterrupt
+
+            key = self.stdscr.getch()
+
     def drawInfo(self):
         """
         A function to draw the info below the album art
@@ -299,12 +347,19 @@ class Player:
 
     def loop(self):
         try:
+            i = 0
             while True:
-                self.draw()
-                time.sleep(1)
+                self.handleKeypress()
+
+                if i % 10 == 0:
+                    self.draw()
+
+                time.sleep(0.1)
+                i = (i + 1) % 10
         except KeyboardInterrupt:
             pass
         finally:
+            curses.nocbreak()
             curses.endwin()
             self.client.close()
             self.client.disconnect()
