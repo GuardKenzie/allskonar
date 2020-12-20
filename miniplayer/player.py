@@ -5,6 +5,7 @@ from mpd import MPDClient
 import ffmpeg
 import pixcat
 import time
+from PIL import Image, ImageDraw
 
 
 # Image ratio
@@ -64,7 +65,7 @@ class Player:
         self.image_y_pos = (self.album_space - self.image_height) // 2 + 1
 
         # Album art location
-        self.album_art_loc = "/tmp/aartminip.jpg"
+        self.album_art_loc = "/tmp/aartminip.png"
 
 
     def fitText(self):
@@ -135,7 +136,34 @@ class Player:
                 .input(song_file_abs)
                 .output(self.album_art_loc)
         )
-        process.run(quiet=True, overwrite_output=True)
+        try:
+            process.run(quiet=True, overwrite_output=True)
+        except ffmpeg._run.Error:
+            foregroundCol = "#D8DEE9"
+            backgroundCol = "#262A33"
+
+            size = 512*4
+
+            art = Image.new("RGB", (size, size), color=backgroundCol)
+            d = ImageDraw.Draw(art)
+
+            for i in range(4):
+                offset = (i - 2) * 70
+
+                external = size/3
+
+                x0 = round(external) - offset
+                y0 = round(external) + offset
+                x1 = round(external*2) - offset
+                y1 = round(external*2) + offset
+
+                externalyx = [(x0, y0), (x1, y1)]
+
+                d.rectangle(externalyx, outline=foregroundCol, width=40)# fill=foregroundCol)
+            # d.ellipse(internalxy, fill=backgroundCol)
+            art.resize((512, 512))
+            art.save(self.album_art_loc, "PNG")
+
 
 
     def checkSongUpdate(self):
