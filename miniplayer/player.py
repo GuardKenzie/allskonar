@@ -70,6 +70,10 @@ class Player:
         # Album art location
         self.album_art_loc = "/tmp/aartminip.png"
 
+        # Toggle for help menu
+        self.help = False
+        self.cleared = False
+
 
     def fitText(self):
         """
@@ -256,6 +260,10 @@ class Player:
             elif keyChar == "q":
                 raise KeyboardInterrupt
 
+            elif keyChar == "h":
+                self.help = not self.help
+                self.cleared = False
+
             key = self.stdscr.getch()
 
     def drawInfo(self):
@@ -316,12 +324,74 @@ class Player:
             pass
 
 
+    def centerText(self, y: int, string: str):
+        """
+        A function that draws centered text in the window
+        given a string and a line.
+
+        Arguments:
+            y      -- The y position to draw the string
+            string -- The string to draw
+        """
+
+        x_pos = self.window_width / 2 - len(string) / 2
+        self.win.addstr(y, int(x_pos), string)
+
+
+    def drawHelp(self):
+        """
+        The function that draws the keymap help
+        """
+
+        # Top vspace
+        top_vspace = 3
+
+        # Left and right margin pct
+        lr_margin_pct = 0.1
+        lr_margin = round(self.window_width * lr_margin_pct)
+
+        # Actual space for text
+        x_space = self.window_width - 2 * (lr_margin)
+
+        # Keymap
+        keymap = {">": "Next track",
+                  "<": "Last track",
+                  "+": "Volume up +5",
+                  "-": "Volume down -5",
+                  "p": "Play/pause",
+                  "q": "Quit",
+                  "h": "Help"
+                 }
+
+        # Check if window has been cleared
+        if not self.cleared:
+            self.win.clear()
+            self.cleared = True
+
+        # Figure out center, y_start and x_start
+        center_y, center_x = (self.window_height // 2, self.window_width // 2)
+        y_start = top_vspace
+        x_start = int(lr_margin)
+
+        # Draw title
+        self.centerText(y_start, "Keymap")
+
+        # Draw help
+        for key, desc in keymap.items():
+            y_start += 1
+            sep = "." * (x_space - len(key) - len(desc) - 2)
+            self.win.addstr(y_start, x_start, f"{key} {sep} {desc}")
+
+        self.win.refresh()
+
+
     def draw(self):
         """
-        The function that draws the window
+        The function that draws the now playing window
         """
-        # Check for window size update
-        self.updateWindowSize()
+        if not self.cleared:
+            self.win.clear()
+            self.cleared = True
 
         # Force window nings
         self.win.redrawln(0, 1)
@@ -349,13 +419,26 @@ class Player:
         try:
             i = 0
             while True:
+                s = time.perf_counter()
+
                 self.handleKeypress()
+                if i == 0:
+                    # Checko for window size update
+                    self.updateWindowSize()
 
-                if i % 10 == 0:
-                    self.draw()
+                    if not self.help:
+                        self.draw()
 
-                time.sleep(0.1)
+                    else:
+                        self.drawHelp()
+
+                e = time.perf_counter()
+
+                sleeptime = abs(0.1 - (e-s))
+
+                time.sleep(sleeptime)
                 i = (i + 1) % 10
+
         except KeyboardInterrupt:
             pass
         finally:
