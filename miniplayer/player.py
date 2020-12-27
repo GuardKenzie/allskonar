@@ -117,7 +117,7 @@ class Player:
         new_height, new_width = self.stdscr.getmaxyx()
 
         if (new_height, new_width) != (self.window_height, self.window_width):
-            self.stdscr.clear()
+            self.win.clear()
 
             # Curses window
             self.window_height, self.window_width = self.stdscr.getmaxyx()
@@ -228,12 +228,15 @@ class Player:
             '-' -- Volume down -5
             'p' -- Play/pause
             'q' -- Quit
+            'h' -- Help
         """
 
+        anytime_keys = ["q", "h"]
+
         if self.checkSongUpdate() == 1:
-            # Flush input if not playing
-            curses.flushinp()
-            return
+            stopped = True
+        else:
+            stopped = False
 
         # Get key
         key = self.stdscr.getch()
@@ -241,6 +244,10 @@ class Player:
         while key > 0:
             # Resolve every key in buffer
             keyChar = chr(key).lower()
+
+            if stopped and keyChar not in anytime_keys:
+                key = self.stdscr.getch()
+                continue
 
             if keyChar == ">":
                 self.client.next()
