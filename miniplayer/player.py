@@ -363,8 +363,8 @@ class Player:
         # Keymap
         keymap = {">": "Next track",
                   "<": "Last track",
-                  "+": "Volume up +5",
-                  "-": "Volume down -5",
+                  "+": "Volume +5",
+                  "-": "Volume -5",
                   "p": "Play/pause",
                   "q": "Quit",
                   "h": "Help"
